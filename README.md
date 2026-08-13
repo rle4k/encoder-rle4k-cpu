@@ -1,4 +1,4 @@
-﻿# encoder-rle4k-cpu
+# encoder-rle4k-cpu
 
 Paper reproducibility package for **A1-RLE4K-CPU-P01**: RLE4K CPU bitmap codec
 benchmark CLI (`redcli`).
@@ -7,6 +7,7 @@ benchmark CLI (`redcli`).
 command-line test/benchmark tool for the raster → encode → decode pipeline.
 
 Windows **x64** only.
+Source: <https://github.com/rle4k/encoder-rle4k-cpu>
 License: [MIT](LICENSE)
 (`SPDX: MIT`).
 Third-party notices: [NOTICE.md](NOTICE.md).
@@ -31,14 +32,14 @@ Third-party notices: [NOTICE.md](NOTICE.md).
 
 **Codecs** (format IDs in `redcli.json` / `--formats`):
 
-| ID | Name   | Implementation                          |
-|----|--------|-----------------------------------------|
-| 0  | RLE4K  | `librle4k` (static lib under `deps/`)   |
-| 1  | GZIP   | zlib                                    |
-| 2  | LZO2   | LZO (`lzo1x`)                           |
-| 3  | SNAPPY | Snappy                                  |
-| 4  | ZSTD   | Zstandard                               |
-| 5  | Brotli | Brotli                                  |
+| ID | Name   | Implementation                        | Version | Source |
+|----|--------|---------------------------------------|---------|--------|
+| 0  | RLE4K  | `librle4k` (static lib under `deps/`) | 1.0.0   | <https://github.com/rle4k/encoder-rle4k-cpu> |
+| 1  | GZIP   | zlib                                  | 1.3.1   | <https://github.com/madler/zlib> |
+| 2  | LZO2   | LZO (`lzo1x`)                         | 2.10    | <https://www.oberhumer.com/opensource/lzo/> |
+| 3  | SNAPPY | Snappy                                | 1.2.2   | <https://github.com/google/snappy> |
+| 4  | ZSTD   | Zstandard                             | 1.5.7   | <https://github.com/facebook/zstd> |
+| 5  | Brotli | Brotli                                | 1.1.0   | <https://github.com/google/brotli> |
 
 Worker threads (`raster_threads` / `encode_threads` / `decode_threads`) are
 capped at **10**. Allocator: static **tcmalloc** (`gperftools`).
@@ -174,18 +175,18 @@ Paper defaults (auto strip → **61952** px):
 
 Pins: [`deps/versions.json`](deps/versions.json).
 
-| Package | Version | Role |
-|---------|---------|------|
-| libdif | 1.0.0 | DIF → geometry |
-| libraster | 1.0.0 | geometry → 1-bpp bitmap |
-| librle4k | 1.0.0 | RLE4K encode/decode |
-| zlib | 1.3.1 | GZIP |
-| lzo | 2.10 | LZO2 |
-| snappy | 1.2.2 | SNAPPY |
-| zstd | 1.5.7 | ZSTD |
-| brotli | 1.1.0 | Brotli |
-| gperftools | 2.16 | tcmalloc |
-| gtest | 1.17.0 | unit tests |
+| Package | Version | Role | Source |
+|---------|---------|------|--------|
+| libdif | 1.0.0 | DIF → geometry | <https://github.com/rle4k/encoder-rle4k-cpu> |
+| libraster | 1.0.0 | geometry → 1-bpp bitmap | <https://github.com/rle4k/encoder-rle4k-cpu> |
+| librle4k | 1.0.0 | RLE4K encode/decode | <https://github.com/rle4k/encoder-rle4k-cpu> |
+| zlib | 1.3.1 | GZIP | <https://github.com/madler/zlib> |
+| lzo | 2.10 | LZO2 | <https://www.oberhumer.com/opensource/lzo/> |
+| snappy | 1.2.2 | SNAPPY | <https://github.com/google/snappy> |
+| zstd | 1.5.7 | ZSTD | <https://github.com/facebook/zstd> |
+| brotli | 1.1.0 | Brotli | <https://github.com/google/brotli> |
+| gperftools | 2.16 | tcmalloc | <https://github.com/gperftools/gperftools> |
+| gtest | 1.17.0 | unit tests | <https://github.com/google/googletest> |
 
 Licenses and link notes: [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
 Override pin: env `RLE4K_DEPS_<NAME>_VERSION` or CMake `-DRLE4K_LIBDIF_VERSION=…`
