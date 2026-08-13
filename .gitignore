@@ -52,7 +52,9 @@ redcli.json
 # IDE / local tools
 .vs/
 .vscode/
-.cursor/
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 .temp/
 *.user
 *.suo

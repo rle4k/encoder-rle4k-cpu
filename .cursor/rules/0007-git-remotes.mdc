@@ -1,0 +1,42 @@
+﻿---
+description: Git remotes — sync to Gitea+Gitee; never default-push GitHub
+alwaysApply: true
+---
+
+# Git remotes（推送目标）
+
+## Remotes
+
+| Remote | Host | URL |
+|--------|------|-----|
+| `origin` | **Gitea**（主） | `http://git.micoou.cn:3000/papers/encoder-rle4k-cpu.git` |
+| `gitee` | **Gitee**（镜像） | `https://gitee.com/rle4k/encoder-rle4k-cpu.git` |
+| `github` | GitHub（可选） | `https://github.com/rle4k/encoder-rle4k-cpu.git` |
+
+## 必须 — 用户要求「同步 / 推送」时
+
+1. **默认只推** `origin`（Gitea）**与** `gitee`：
+   ```powershell
+   git push origin HEAD
+   git push gitee HEAD
+   ```
+2. 上游跟踪分支：**`origin/<branch>`**（不是 `github/`）。
+3. 推送后用 `git ls-remote` 核对 **origin 与 gitee** 的 tip SHA 与本地一致。
+
+## 禁止
+
+| 禁止 | 说明 |
+|------|------|
+| 默认 `git push` / `git push github` | 用户未点名 GitHub 时 **禁止** 推 GitHub |
+| 三远程共用 `refs/remotes/origin/*` | 每个 remote 必须独立：`origin/*`、`gitee/*`、`github/*` |
+| 用 `gh` 当本仓库默认同步 | 本仓库主仓是 Gitea；`gh` 仅在用户明确要求 GitHub PR/Issue 时使用 |
+
+## Fetch refspec（正确）
+
+```
+remote.origin.fetch  +refs/heads/*:refs/remotes/origin/*
+remote.gitee.fetch   +refs/heads/*:refs/remotes/gitee/*
+remote.github.fetch  +refs/heads/*:refs/remotes/github/*
+```
+
+若发现 `gitee`/`github` 的 fetch 指向 `refs/remotes/origin/*`，**必须先改回上表再 fetch**，否则会覆盖 Gitea 跟踪分支并误导 Agent。
