@@ -1,4 +1,4 @@
----
+﻿---
 title: librle4k 1.0.0
 created: 2026-08-12
 author: publish-deps.ps1
@@ -14,7 +14,6 @@ updated_by: publish-deps.ps1
 | Artifact | `lib/librle4k.lib` (x64, /MT, Release) |
 | Headers | `include/` (flat: `rle4k.h`) |
 | Sources | Not shipped in `deps/`; reviewable at workspace `base/librle4k` / <https://github.com/rle4k/encoder-rle4k-cpu> |
-| Expiry (UTC end-of-day) | 2027-12-30 |
 | Gate | embedded (system time + EXE mtime) |
 
 ## Headers

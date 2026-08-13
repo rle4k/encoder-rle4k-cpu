@@ -1,4 +1,4 @@
----
+﻿---
 title: Dependencies
 created: 2026-06-28
 author: AI-assisted
@@ -61,7 +61,7 @@ CMake: `cmake/DepsLibdif.cmake`, `DepsLibraster.cmake`, `DepsLibrle4k.cmake`,
 
 ```powershell
 .\scripts\publish-deps.ps1
-# optional: -ExpiryDate YYYY-MM-DD  -LibVersion 1.0.0  -SkipVcpkgVendor  -SkipBase
+# optional: -LibVersion 1.0.0  -SkipVcpkgVendor  -SkipBase
 ```
 
 Rebuilds base libs (evaluation gate unless `-NoGate`), vendors compression /

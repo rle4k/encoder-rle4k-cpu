@@ -1,4 +1,4 @@
----
+﻿---
 title: libraster 1.0.0
 created: 2026-08-12
 author: publish-deps.ps1
@@ -14,7 +14,6 @@ updated_by: publish-deps.ps1
 | Artifact | `lib/libraster.lib` (x64, /MT, Release) |
 | Headers | `include/` (flat) |
 | Sources | Not shipped in `deps/`; reviewable at workspace `base/libraster` / <https://github.com/rle4k/encoder-rle4k-cpu> |
-| Expiry (UTC end-of-day) | 2027-12-30 |
 | Gate | embedded (system time + EXE mtime) |
 
 ## Headers

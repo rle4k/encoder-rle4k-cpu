@@ -233,7 +233,6 @@ updated_by: publish-deps.ps1
 | Artifact | ``lib/$LibName.lib`` (x64, /MT, $Configuration) |
 | Headers | ``include/`` |
 | Sources | Not shipped in ``deps/``; reviewable at workspace ``base/$LibName`` |
-| Expiry (UTC end-of-day) | $iso |
 | Gate | $(if ($EnableGate) { 'embedded (system time + EXE mtime)' } else { 'disabled (author-only build)' }) |
 
 ## Role
@@ -249,7 +248,6 @@ Commercial use or evaluation continuation: yuqp78@foxmail.com
     $versionFile = @"
 name: $LibName
 version: $Version
-expiry: $iso
 gate: $(if ($EnableGate) { 'true' } else { 'false' })
 triplet: x64-windows-static-mt
 "@
@@ -535,7 +533,7 @@ and unit tests against this tree (no live vcpkg when deps are complete).
 live under workspace ``base/{libdif,libraster,librle4k}``; OSS sources remain
 upstream / on the author-machine vcpkg tree used by ``publish-deps.ps1``.
 
-See each package README for origin, expiry (base libs), and link instructions.
+See each package README for origin and link instructions.
 "@
 Set-Content -Path (Join-Path $repoRoot 'deps\README.md') -Value $index -Encoding utf8
 
