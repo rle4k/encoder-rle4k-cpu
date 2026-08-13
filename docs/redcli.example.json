@@ -1,0 +1,100 @@
+﻿{
+    // ============================================================
+    //  redcli.json — annotated defaults (documentation mirror)
+    //  Runtime source of truth: redcli init → rle4k_builtin_default_config_json
+    //  Full field guide: docs/redcli.help.md
+    //  Comments (//) are for humans; the minimal parser accepts them.
+    // ============================================================
+
+    // --- Input / output -------------------------------------------------
+    // Path to one .dif (mode 0) or a folder of *.dif (mode 1).
+    // Relative to the process CWD. Empty → must pass --input on the CLI.
+    "input": "",
+
+    // 0 = single file; 1 = non-recursive folder scan for *.dif
+    "mode": 0,
+
+    // Conventional output directory (created if missing).
+    // Does NOT write CSV by itself — use: redcli run --csv path\to\out.csv
+    "output_path": "build/out",
+
+    // --- Timing / integrity ---------------------------------------------
+    // Encode/decode timing repeats (averaged). Higher = stabler, slower.
+    "repeat": 3,
+
+    // 0 = no check (paper timing default); 1 = FNV after raster + verify
+    // AFTER decode wall timer (does not inflate decode GB/s).
+    "check_enabled": 0,
+
+    // Sliding window of row-blocks: raster → encode → decode this many at a time.
+    // Window size = cache_blocks_max (max raised to min if needed). Larger = more RAM.
+    "cache_blocks_min": 32,
+    "cache_blocks_max": 128,
+
+    // --- Raster geometry (changes the bitmaps every codec sees) ---------
+    // Pixel pitch in micrometres. pw_nm = pitch_width_um * 1000.
+    // Paper: 0.5. Smaller pitch → more pixels for the same layout.
+    "pitch_width_um": 0.5,
+
+    // Oblique factor N. Used when strip_width==0:
+    //   raw = dmd_resolution_cols * N + dmd_resolution_rows
+    //   strip_width = ceil(raw / align_mode) * align_mode
+    // Defaults → 1920*32+512 = 61952 px. Paper: 32.
+    "oblique_factor": 32,
+
+    // Nominal DMD size for auto strip_width only (not DIF bounds).
+    "dmd_resolution_rows": 512,
+    "dmd_resolution_cols": 1920,
+
+    // Strip width in pixels. 0 = auto (formula above). >0 = force width.
+    "strip_width": 0,
+
+    // Rounding grain for auto strip_width (same units as width in the ceil formula).
+    // Paper: 512. (Bitmap pack path uses fixed 64-bit row align for codecs.)
+    "align_mode": 512,
+
+    // Row-block height in pixel rows. One work unit ≈ strip_width × block_line @ 1bpp.
+    // Paper: 512.
+    "block_line": 512,
+
+    // --- Threads (each phase clamped to 1..10) --------------------------
+    // Phase 1 raster workers. Env RLE4K_THREADS (if >0) overrides this.
+    "raster_threads": 4,
+
+    // Phase 2 encode workers. 0 = same as raster_threads.
+    "encode_threads": 0,
+
+    // Phase 3 decode workers. 0 = same as raster_threads.
+    "decode_threads": 0,
+
+    // 1 = run phase; 0 = skip. encode_enabled=0 also skips decode.
+    "encode_enabled": 1,
+    "decode_enabled": 1,
+
+    // --- Codecs ---------------------------------------------------------
+    // Config IDs: 0=RLE4K 1=GZIP 2=LZO2 3=SNAPPY 4=ZSTD 5=BROTLI
+    // Example paper-comparable subset: [0, 1, 2, 3, 4, 5]
+    "formats": [0, 1, 2, 3, 4, 5],
+
+    // zlib compress2 level 1..9 (clamped). Paper: 6.
+    "gzip_level": 6,
+
+    // ZSTD_compress level 1..22 (clamped). Paper: 3.
+    "zstd_level": 3,
+
+    // 1 = lzo1x_1_compress; 2..999 = lzo1x_999_compress_level. Paper: 1.
+    "lzo2_level": 1,
+
+    // Reserved; Snappy has no level (ignored).
+    "snappy_level": 0,
+
+    // Brotli quality 0..11 (clamped). Paper: 6.
+    "brotli_level": 6,
+
+    // Brotli window bits 10..24 (clamped). Paper: 22.
+    "brotli_window": 22,
+
+    // "file" = per-file logs; "strip" = per-strip detail on stderr.
+    "verbose": "file"
+
+}

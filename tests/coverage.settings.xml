@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Configuration>
+  <CodeCoverage>
+    <ModulePaths>
+      <Include>
+        <ModulePath>.*redcli_tests\.exe</ModulePath>
+        <ModulePath>.*rle4k_core\.lib</ModulePath>
+      </Include>
+    </ModulePaths>
+    <Sources>
+      <Include>
+        <Source>.*\\redcli\\.*\.cpp</Source>
+      </Include>
+      <Exclude>
+        <Source>.*\\main\.cpp</Source>
+        <Source>.*\\tests\\.*</Source>
+        <Source>.*\\vcpkg\\.*</Source>
+        <Source>.*\\gtest\\.*</Source>
+      </Exclude>
+    </Sources>
+    <Functions>
+      <Exclude>
+        <Function>.*testing::.*</Function>
+        <Function>.*std::.*</Function>
+      </Exclude>
+    </Functions>
+  </CodeCoverage>
+</Configuration>

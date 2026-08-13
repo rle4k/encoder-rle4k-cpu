@@ -1,0 +1,78 @@
+﻿# Build
+build/
+build-*/
+out/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.dir/
+*.tlog/
+*.lastbuildstate
+*.recipe
+*.idb
+*.iobj
+*.ipdb
+
+# Objects / binaries (keep vendored static libs under deps/)
+*.obj
+*.o
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+!deps/**/*.lib
+
+# vcpkg install tree (author-machine harvest only)
+vcpkg_installed/
+
+# Local DIF corpus (keep README + smoke fixture)
+data/*
+!data/README.md
+!data/DIF50.dif
+
+# Benchmark / local config / release zips
+results/
+releases/
+redcli.json
+/nmake_output.txt
+/build_log.txt
+/rasterizer_errors.txt
+
+# IDE / local tools
+.vs/
+.vscode/
+.cursor/
+.temp/
+*.user
+*.suo
+*.ncb
+*.opendb
+*.VC.db
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Regenerable graphs
+graphify-out/
+.gitnexus/
+
+# Drafts
+*.draft.md
+*.summary.md
+
+vcpkg-overlays/
+.gitea/vcpkg.txt
+

@@ -1,0 +1,5 @@
+﻿name: librle4k
+version: 1.0.0
+expiry: 2027-12-30
+gate: true
+triplet: x64-windows-static-mt

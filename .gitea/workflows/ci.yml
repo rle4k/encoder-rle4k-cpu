@@ -1,0 +1,217 @@
+﻿# Gitea Actions Continuous Integration (CI) — encoder-rle4k-cpu
+#
+# Triggers:
+#   - Push to master / develop
+#   - Pull Request targeting those branches
+#
+# Jobs:
+#   - build-msvc (official gate): Release build + redcli smoke on windows-msvc
+#   - manifest-check: light file checks on windows-msvc (same runner; no papers-test)
+#
+# Dependencies: prefer complete deps/ (headers + static .lib). When deps/ is
+# complete, build.bat / msbuild.ps1 skip the vcpkg toolchain.
+#
+# Prerequisites:
+#   1. Gitea [actions] ENABLED=true, DEFAULT_ACTIONS_URL=self
+#   2. act_runner label windows-msvc:host
+#      Download: https://dl.gitea.com/act_runner/
+#   3. Repo Settings -> Actions enabled
+#   4. Repo secret CI_PAPERS_RUNNER (git HTTP token; set in Gitea UI)
+#
+# Checkout: git + oauth2 token (same pattern as taskify / ldviewer).
+# Avoid actions/checkout when the runner has no Node on PATH.
+#
+
+# Host DIF fixtures (windows-msvc runner):
+#   GEOMS_SMOKE_FILE = D:\geoms\DIF01.dif   (single-file smoke)
+#   GOEMS_ROOT       = D:\geoms             (folder batch; alias GEOMS_ROOT)
+# Inject these via runner config.yaml envs (see .gitea/config.yaml).
+
+name: CI
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+
+jobs:
+  build-msvc:
+    runs-on: windows-msvc
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout
+        env:
+          CI_PAPERS_RUNNER: ${{ secrets.CI_PAPERS_RUNNER }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:CI_PAPERS_RUNNER) {
+            throw 'Secret CI_PAPERS_RUNNER is empty. Add it under repo Settings → Actions → Secrets.'
+          }
+          $server = $env:GITHUB_SERVER_URL.TrimEnd('/')
+          $scheme = 'http'
+          if ($server -like 'https://*') { $scheme = 'https' }
+          $hostPath = $server -replace '^https?://', ''
+          $url = "{0}://oauth2:{1}@{2}/{3}.git" -f $scheme, $env:CI_PAPERS_RUNNER, $hostPath, $env:GITHUB_REPOSITORY
+          git init
+          git remote add origin $url
+          git fetch --depth 1 origin $env:GITHUB_SHA
+          git checkout --force FETCH_HEAD
+
+      - name: Build Release
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($n in @(
+            'GIT_DIR','GIT_WORK_TREE','GIT_INDEX_FILE','GIT_COMMON_DIR',
+            'GIT_OBJECT_DIRECTORY','GIT_ALTERNATE_OBJECT_DIRECTORIES'
+          )) {
+            if (Test-Path "Env:$n") { Remove-Item "Env:$n" }
+          }
+          . .\scripts\msbuild-common.ps1
+          $depsOk = Test-Rle4kDepsVendorComplete -RepoRoot (Get-Location).Path
+          if ($depsOk) {
+            Write-Host 'deps/ complete — building without vcpkg toolchain'
+          } else {
+            Write-Host 'deps/ incomplete — requiring VCPKG_ROOT fallback'
+            if (-not $env:VCPKG_ROOT) { $env:VCPKG_ROOT = 'D:\vcpkg' }
+            if (-not $env:VCPKG_DOWNLOADS) { $env:VCPKG_DOWNLOADS = 'D:\vcpkg\downloads' }
+            if (-not $env:VCPKG_DEFAULT_BINARY_CACHE) {
+              $env:VCPKG_DEFAULT_BINARY_CACHE = 'D:\vcpkg\archives'
+            }
+            if (-not $env:GIT_CONFIG_GLOBAL) {
+              $env:GIT_CONFIG_GLOBAL = 'D:\gitea-runner\gitconfig'
+            }
+            if ($env:LOCALAPPDATA -like '*\systemprofile\*') {
+              $env:LOCALAPPDATA = 'D:\gitea-runner\AppData\Local'
+              $env:APPDATA = 'D:\gitea-runner\AppData\Roaming'
+            }
+            foreach ($p in @(
+              $env:VCPKG_DOWNLOADS,
+              $env:VCPKG_DEFAULT_BINARY_CACHE,
+              'D:\gitea-runner\AppData\Local',
+              'D:\gitea-runner\AppData\Roaming',
+              (Split-Path -Parent $env:GIT_CONFIG_GLOBAL)
+            )) {
+              New-Item -ItemType Directory -Force -Path $p | Out-Null
+            }
+            if (-not (Test-Path -LiteralPath $env:GIT_CONFIG_GLOBAL)) {
+              @(
+                '[safe]'
+                "`tdirectory = *"
+                "`tdirectory = D:/vcpkg"
+              ) | Set-Content -LiteralPath $env:GIT_CONFIG_GLOBAL -Encoding ascii
+            }
+            if (-not (Test-Path -LiteralPath (Join-Path $env:VCPKG_ROOT '.git'))) {
+              throw "VCPKG_ROOT=$($env:VCPKG_ROOT) missing .git — full vcpkg clone required when deps/ is incomplete."
+            }
+          }
+          .\build.bat
+          if ($LASTEXITCODE -ne 0) { throw "build.bat failed (exit $LASTEXITCODE)" }
+
+      - name: Smoke redcli
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = @('.\build\redcli.exe', '.\build\Release\redcli.exe') |
+            Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $exe) { throw 'redcli.exe not found' }
+          # Prefer Start-Process ExitCode — pwsh native $LASTEXITCODE can be flaky with pipes.
+          $out = Join-Path $env:TEMP 'redcli-help-out.txt'
+          $err = Join-Path $env:TEMP 'redcli-help-err.txt'
+          foreach ($arg in @('--help', '-h', 'help')) {
+            $p = Start-Process -FilePath $exe -ArgumentList $arg -Wait -PassThru -NoNewWindow `
+              -RedirectStandardOutput $out -RedirectStandardError $err
+            Get-Content -LiteralPath $err -ErrorAction SilentlyContinue | Write-Host
+            Get-Content -LiteralPath $out -ErrorAction SilentlyContinue | Write-Host
+            Write-Host "redcli $arg ExitCode=$($p.ExitCode)"
+            if ($p.ExitCode -ne 0) { throw "redcli $arg failed (exit $($p.ExitCode))" }
+          }
+
+      - name: DIF single-file smoke
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $input = $env:GEOMS_SMOKE_FILE
+          if (-not $input) {
+            if (Test-Path -LiteralPath '.\data\DIF50.dif') {
+              $input = (Resolve-Path '.\data\DIF50.dif').Path
+              Write-Host "Using bundled smoke fixture: $input"
+            } else {
+              Write-Host 'GEOMS_SMOKE_FILE not set and data/DIF50.dif missing; skip single-file DIF smoke.'
+              exit 0
+            }
+          }
+          if (-not (Test-Path -LiteralPath $input)) {
+            throw "smoke DIF not found: $input"
+          }
+          .\scripts\test-single-file.ps1 -InputPath $input
+          if ($LASTEXITCODE -ne 0) { throw "test-single-file.ps1 failed (exit $LASTEXITCODE)" }
+
+      - name: DIF folder batch
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # Full folder × all codecs is a long benchmark, not CI smoke.
+          if ($env:RLE4K_CI_FOLDER_BATCH -ne '1') {
+            Write-Host 'Skip folder batch (set RLE4K_CI_FOLDER_BATCH=1 to enable).'
+            exit 0
+          }
+          $root = $env:GOEMS_ROOT
+          if (-not $root) { $root = $env:GEOMS_ROOT }
+          if (-not $root) {
+            Write-Host 'GOEMS_ROOT / GEOMS_ROOT not set; skip folder DIF batch.'
+            exit 0
+          }
+          if (-not (Test-Path -LiteralPath $root)) {
+            throw "GOEMS_ROOT/GEOMS_ROOT not found: $root"
+          }
+          .\scripts\test-folder.ps1 -InputDir $root -Repeat 1
+          if ($LASTEXITCODE -ne 0) { throw "test-folder.ps1 failed (exit $LASTEXITCODE)" }
+
+  # Same label as build-msvc so CI does not hang waiting for a missing papers-test runner.
+  manifest-check:
+    runs-on: windows-msvc
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout
+        env:
+          CI_PAPERS_RUNNER: ${{ secrets.CI_PAPERS_RUNNER }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:CI_PAPERS_RUNNER) {
+            throw 'Secret CI_PAPERS_RUNNER is empty. Add it under repo Settings → Actions → Secrets.'
+          }
+          $server = $env:GITHUB_SERVER_URL.TrimEnd('/')
+          $scheme = 'http'
+          if ($server -like 'https://*') { $scheme = 'https' }
+          $hostPath = $server -replace '^https?://', ''
+          $url = "{0}://oauth2:{1}@{2}/{3}.git" -f $scheme, $env:CI_PAPERS_RUNNER, $hostPath, $env:GITHUB_REPOSITORY
+          git init
+          git remote add origin $url
+          git fetch --depth 1 origin $env:GITHUB_SHA
+          git checkout --force FETCH_HEAD
+
+      - name: Check CI manifests
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($f in @(
+            '.gitea/workflows/ci.yml',
+            'build.bat',
+            'deps/versions.json',
+            'cmake/DepsLibraster.cmake',
+            'cmake/DepsLibdif.cmake',
+            'cmake/DepsLibrle4k.cmake',
+            'cmake/DepsVendoredCompression.cmake',
+            'README.md',
+            'LICENSE',
+            'data/README.md',
+            'data/DIF50.dif'
+          )) {
+            if (-not (Test-Path -LiteralPath $f)) { throw "missing: $f" }
+          }
+          . .\scripts\msbuild-common.ps1
+          if (-not (Test-Rle4kDepsVendorComplete -RepoRoot (Get-Location).Path)) {
+            throw 'deps/ incomplete — required static libs missing (see Test-Rle4kDepsVendorComplete)'
+          }
+          Write-Host 'manifest-check OK (deps-first)'

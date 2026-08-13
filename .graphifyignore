@@ -1,0 +1,115 @@
+﻿# =============================================================================
+# Build output
+# =============================================================================
+build/
+build-*/
+build-smoke/
+build-vcpkg-smoke/
+build-vcpkg-smoke-test/
+build-test/
+out/
+cmake-build-*/
+
+# =============================================================================
+# CMake / Visual Studio generator artifacts
+# =============================================================================
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.dir/
+*.tlog/
+*.lastbuildstate
+*.recipe
+*.idb
+*.iobj
+*.ipdb
+
+# =============================================================================
+# Compiled objects and binaries
+# =============================================================================
+*.obj
+*.o
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+
+# =============================================================================
+# vcpkg installed artifacts
+# =============================================================================
+vcpkg_installed/
+
+# =============================================================================
+# Test / benchmark output
+# =============================================================================
+results/
+data/
+tools/rle4k_gen_test_data.exe
+
+# =============================================================================
+# IDE
+# =============================================================================
+.vs/
+.vscode/
+*.user
+*.suo
+*.ncb
+*.opendb
+*.VC.db
+
+# Cursor: track rules/, ignore everything else
+.cursor/*
+!.cursor/rules/
+
+# =============================================================================
+# OS
+# =============================================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =============================================================================
+# Code intelligence tools (auto-generated, regenerable)
+# =============================================================================
+graphify-out/
+.gitnexus/
+.opencode/
+.claude/
+
+# =============================================================================
+# Draft / temporary files
+# =============================================================================
+*.draft.md
+*.summary.md
+
+# Stray build logs / local config at repo root (canonical: build/temp/, build/out/)
+/nmake_output.txt
+/build_log.txt
+/rasterizer_errors.txt
+/redcli.json
+
+!gitea/
+.temp/
+
+out/
+graphify-out/
+build/
+
+.cursor/
+
+vcpkg-overlays/
+vcpkg-vcpkg_installed/
+
+vcpkg.json
+
+.vs/

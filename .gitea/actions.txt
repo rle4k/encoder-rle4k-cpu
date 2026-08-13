@@ -1,0 +1,8 @@
+﻿# Mirrored actions — http://git.micoou.cn:3000/actions
+#
+# CI (.gitea/workflows/ci.yml) uses git + secrets.CI_PAPERS_RUNNER for checkout
+# (host runners may lack Node for JS actions). Listed for reference / other jobs:
+
+actions/checkout@v4
+actions/setup-python@v5
+actions/cache@v4

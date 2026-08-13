@@ -1,0 +1,95 @@
+﻿# gitea-runner config for Windows MSVC CI (papers-win-runner)
+# Usage (from the directory that contains .runner):
+#   .\gitea-runner.exe daemon --config config.yaml
+#
+# Do NOT duplicate this file. Do NOT keep ubuntu docker labels here
+# unless you also want Linux jobs — non-empty labels override .runner.
+
+log:
+  level: info
+
+runner:
+  file: .runner
+  capacity: 1
+  # Injected into every job process (host mode).
+  envs:
+    VCPKG_ROOT: "D:\\vcpkg"
+    # Keep vcpkg downloads/tools off SYSTEM profile
+    # (C:\Windows\System32\config\systemprofile\AppData\Local\vcpkg\...).
+    # Do NOT confuse with port 7zip:x64-windows-static — that is a library;
+    # vcpkg still needs its own 7zip/7zr *tools* under VCPKG_DOWNLOADS.
+    VCPKG_DOWNLOADS: "D:\\vcpkg\\downloads"
+    VCPKG_DEFAULT_BINARY_CACHE: "D:\\vcpkg\\archives"
+    LOCALAPPDATA: "D:\\gitea-runner\\AppData\\Local"
+    APPDATA: "D:\\gitea-runner\\AppData\\Roaming"
+    # Runner may run as SYSTEM / different SID than D:\vcpkg owner.
+    # Without this, git "dubious ownership" breaks vcpkg builtin-baseline.
+    # File content: [safe] directory = *  (+ optional D:/vcpkg)
+    GIT_CONFIG_GLOBAL: "D:\\gitea-runner\\gitconfig"
+    # Host DIF fixtures (DIF01.dif … DIF64.dif under D:\geoms)
+    GEOMS_SMOKE_FILE: "D:\\geoms\\DIF01.dif"
+    GOEMS_ROOT: "D:\\geoms"
+    GEOMS_ROOT: "D:\\geoms"
+  env_file: .env
+  timeout: 3h
+  shutdown_timeout: 0s
+  insecure: false
+  fetch_timeout: 5s
+  fetch_interval: 2s
+  fetch_interval_max: 5s
+  workdir_cleanup_age: 24h
+  idle_cleanup_interval: 10m
+  log_report_interval: 5s
+  log_report_max_latency: 3s
+  log_report_batch_size: 100
+  state_report_interval: 5s
+  report_close_timeout: 10s
+  github_mirror: ""
+  action_shallow_clone: true
+  set_act_env: true
+  # Must match workflow runs-on. Empty = use labels from .runner.
+  # Keep ONLY windows-msvc for this host runner.
+  labels:
+    - "windows-msvc:host"
+  allocate_pty: false
+  post_task_script: ""
+  post_task_script_timeout: 5m
+
+cache:
+  enabled: true
+  dir: D:/gitea-runner/cache/actcache
+  host: ""
+  port: 0
+  external_server: ""
+  external_secret: ""
+  external_secret_file: ""
+  offline_mode: false
+
+container:
+  network: ""
+  privileged: false
+  options:
+  workdir_parent:
+  valid_volumes: []
+  docker_host: ""
+  force_pull: false
+  force_rebuild: false
+  require_docker: false
+  docker_timeout: 0s
+  bind_workdir: false
+
+# Host-mode job workspaces (this is what moves C:\Users\...\ .cache\act → D:)
+host:
+  workdir_parent: D:/gitea-runner/cache/act
+
+health_check:
+  enabled: false
+  min_free_disk_space_mb: 1024
+  script: ""
+  interval: 30s
+  timeout: 10s
+
+metrics:
+  enabled: false
+  addr: "127.0.0.1:9101"
+  readiness_grace: 30s
